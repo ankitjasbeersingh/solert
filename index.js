@@ -5,6 +5,7 @@ const connection = new solanaweb3.Connection(solanaweb3.clusterApiUrl('mainnet-b
 const queue = [];
 let processing = false;
 let latestSignature = null;
+const largeTransactionThreshold = 1000 * solanaweb3.LAMPORTS_PER_SOL;
 async function monitorTransactions(){
     connection.onLogs('all',async (log)=>{
         if (latestSignature && log.signature <= latestSignature) {
@@ -64,8 +65,9 @@ async function processQueue() {
     try {
       const transactionDetails = await fetchTransactionDetails(log.signature);
       if (transactionDetails) {
-        const amountTransferred = transactionDetails.meta.postBalances[0] - transactionDetails.meta.preBalances[0];
-        const largeTransactionThreshold = 1000 * solanaweb3.LAMPORTS_PER_SOL;
+        const amountTransferred = transactionDetails.meta.preBalances[0] - transactionDetails.meta.postBalances[0];
+        
+        console.log(amountTransferred)
         if (amountTransferred >= largeTransactionThreshold) {
             console.log('Large transaction detected:', transactionDetails);
             // Process large transaction (e.g., send alert)
